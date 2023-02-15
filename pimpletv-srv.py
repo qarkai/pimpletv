@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import os
-
 from pimpletv_parser import get_broadcasts, get_playlist_entry
 
 
