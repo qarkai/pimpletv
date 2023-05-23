@@ -17,6 +17,10 @@ def get_playlist() -> str:
 
 
 def app(environ, start_response):
+    if environ['PATH_INFO'] == '/test':
+        start_response("200 OK", [])
+        return iter([b""])
+
     query = environ['QUERY_STRING']
     if not query:
         query = '127.0.0.1:6878'
@@ -26,7 +30,7 @@ def app(environ, start_response):
 
     start_response("200 OK", [
         ("Content-Type", "text/plain"),
-        ("Content-Length", str(len(data)))
+        ("Content-Length", str(len(data))),
     ])
 
     return iter([data])

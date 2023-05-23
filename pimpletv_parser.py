@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from datetime import datetime, timedelta
 import html
-from io import StringIO
+import re
 import urllib.error
 import urllib.request
-import re
+from datetime import datetime, timedelta
+from io import StringIO
 from zoneinfo import ZoneInfo
 
 PIMPLETV_URL = 'https://www.pimpletv.ru/'
