@@ -70,6 +70,7 @@ def get_ssiptv_channel_id(channel: str) -> int:
         'МАТЧ! Футбол 1 (HD)': 553,
         'МАТЧ! Футбол 2 (HD)': 554,
         'МАТЧ! ИГРА (HD)': 569,
+        'СТАРТ HD': 631,
         'Setanta Sports HD': 665,
         'Футбол HD': 919,
         'Беларусь 5 HD': 1511,
