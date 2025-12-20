@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-import html
+import asyncio
 import re
-import urllib.error
-import urllib.request
 from datetime import datetime, timedelta
-from io import StringIO
 from zoneinfo import ZoneInfo
+
+import aiohttp
 
 PIMPLETV_URL = 'https://www.pimpletv.ru/'
 
@@ -42,14 +41,6 @@ class Broadcast:
     def to_m3u(self, acestream_id: str) -> str:
         channel_id = get_ssiptv_channel_id(self.channel)
         return f'#EXTINF:-1 type="stream" channelId="{channel_id}", {self.time} {self.teams} ({self.channel})\n{acestream_id}\n'
-
-
-def load_page(path: str):
-    try:
-        with urllib.request.urlopen(f'{PIMPLETV_URL}/{path}') as f:
-            return html.unescape(f.read().decode('utf-8'))
-    except urllib.error.HTTPError:
-        return ''
 
 
 def get_acestream_ids(html_text: str):
@@ -154,13 +145,21 @@ def parse_broadcast_links(html_text: str) -> list:
     return []
 
 
-def get_broadcasts() -> list:
-    page = load_page('/category/football/')
+async def load_page(session: aiohttp.ClientSession, path: str):
+    url = f'{PIMPLETV_URL}/{path}'
+
+    async with session.get(url) as response:
+        return await response.text()
+
+
+async def get_broadcasts(session: aiohttp.ClientSession) -> list:
+    page = await load_page(session, '/category/football/')
     return parse_broadcast_links(page)
 
 
-def get_playlist_entry(b: Broadcast) -> str:
-    page = load_page(b.link)
+async def get_playlist_entry(session: aiohttp.ClientSession, b: Broadcast) -> str:
+    print(f'{b.teams}, {b.channel}, {"Live" if b.live else b.time}, {b.link}')
+    page = await load_page(session, b.link)
     acestream_ids = get_acestream_ids(page)
     if not acestream_ids:
         return None
@@ -171,26 +170,26 @@ def get_playlist_entry(b: Broadcast) -> str:
     return b.to_m3u(acestream_ids[0])
 
 
-def load_playlist() -> str:
-    broadcasts = get_broadcasts()
-    # print(len(broadcasts))
+async def load_playlist() -> str:
+    playlist = '#EXTM3U\n'
 
-    with StringIO() as fh:
-        fh.write('#EXTM3U\n')
+    async with aiohttp.ClientSession() as session:
+        broadcasts = await get_broadcasts(session)
+        # print(len(broadcasts))
 
-        for b in broadcasts:
-            print(f'{b.teams}, {b.channel}, {"Live" if b.live else b.time}, {b.link}')
+        tasks = [get_playlist_entry(session, b) for b in broadcasts]
+        entries = await asyncio.gather(*tasks)
 
-            m3u = get_playlist_entry(b)
-            if not m3u:
-                continue
-
-            fh.write(m3u)
-
-        playlist = fh.getvalue()
+        for m3u in entries:
+            if m3u:
+                playlist += m3u
 
     return playlist
 
 
+def get_playlist() -> str:
+    return asyncio.run(load_playlist())
+
+
 if __name__ == '__main__':
-    load_playlist()
+    print(get_playlist())
