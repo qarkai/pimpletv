@@ -133,14 +133,13 @@ def parse_today_links(fh):
     return broadcasts
 
 
-def parse_broadcast_links(html_text: str) -> list:
-    today = datetime.now(tz=MSK)
-    streams_today_pattern = re.compile(f'<div class="streams-day">({today.day}.*)')
-    # print(today)
+def parse_broadcast_links(html_text: str, day: int) -> list:
+    streams_day_pattern = re.compile(f'<div class="streams-day">({day}.*)')
+
     lines = iter(html_text.splitlines())
     for line in lines:
         # print(f'line: {line}')
-        if get_value(line, streams_today_pattern):
+        if get_value(line, streams_day_pattern):
             return parse_today_links(lines)
     return []
 
@@ -154,7 +153,18 @@ async def load_page(session: aiohttp.ClientSession, path: str):
 
 async def get_broadcasts(session: aiohttp.ClientSession) -> list:
     page = await load_page(session, '/category/football/')
-    return parse_broadcast_links(page)
+
+    today = datetime.now(tz=MSK)
+    # print(today)
+    prev_day = today - timedelta(hours=3)
+    # print(prev_day)
+
+    broadcasts = []
+    if prev_day.day != today.day:
+        broadcasts.extend(parse_broadcast_links(page, prev_day.day))
+    broadcasts.extend(parse_broadcast_links(page, today.day))
+
+    return broadcasts
 
 
 async def get_playlist_entry(session: aiohttp.ClientSession, b: Broadcast) -> str:
