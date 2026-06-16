@@ -134,7 +134,7 @@ def parse_today_links(fh):
 
 
 def parse_broadcast_links(html_text: str) -> list:
-    today = datetime.now(tz=MSK) - timedelta(hours=3)
+    today = datetime.now(tz=MSK)
     streams_today_pattern = re.compile(f'<div class="streams-day">({today.day}.*)')
     # print(today)
     lines = iter(html_text.splitlines())
