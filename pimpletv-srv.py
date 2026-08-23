@@ -16,7 +16,7 @@ def app(environ, start_response):
     data = playlist.replace('acestream://', f'http://{query}/ace/getstream?id=').encode()
 
     start_response("200 OK", [
-        ("Content-Type", "text/plain"),
+        ("Content-Type", "text/plain; charset=utf-8"),
         ("Content-Length", str(len(data))),
     ])
 
