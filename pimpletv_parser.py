@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 
 import aiohttp
 
-PIMPLETV_URL = 'https://www.pimpletv.me/'
+PIMPLETV_URL = 'https://www.pimpletv.ru/'
 
 MSK = ZoneInfo('Europe/Moscow')
 
